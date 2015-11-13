@@ -50,7 +50,10 @@ def my_custom_msg_generator(sequence_length):
     """
     seq = 0
     while seq < sequence_length:
-        yield (seq, "magic_topic", "very boring payload")
+        h = random.random()
+        s = random.random()
+        b = random.random()
+        yield (seq, "lamp/set_config", "{\"on\":true, \"color\":{\"h\":" + str(h) + ", \"s\":" + str(s) + "}, \"brightness\":" + str(b)  + "}")
         seq += 1
 
 
@@ -60,7 +63,12 @@ def _worker(options, proc_num, auth=None):
     Modify this to provide custom message generation routines.
     """
     # Make a new clientid with our worker process number
-    cid = "%s-%d" % (options.clientid, proc_num)
+    #cid = "%s-%d" % (options.clientid, proc_num)
+    if random.random() < .5:
+        cid = "%s" % (options.clientid)
+    else:
+        cid = "%s-%d" % (options.clientid, proc_num)
+
     if options.bridge:
         ts = beem.bridge.BridgingSender(options.host, options.port, cid, auth)
         # This is _probably_ what you want if you are specifying a key file
@@ -198,10 +206,13 @@ def run(options):
     time_end = time.time()
     stats_set = []
     for result in completed_set:
-        s = result.get()
-        if options.thread_ratio == 1:
-            beem.print_publish_stats(s)
-        stats_set.append(s)
+        if result.successful():
+            s = result.get()
+            if options.thread_ratio == 1:
+                beem.print_publish_stats(s)
+            stats_set.append(s)
+        else:
+            print("failure!!!!!!!!!")
 
     if options.thread_ratio == 1:
         agg_stats = beem.aggregate_publish_stats(stats_set)
