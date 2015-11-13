@@ -41,7 +41,7 @@ import beem.bridge
 import beem.msgs
 
 
-def my_custom_msg_generator(sequence_length):
+def my_custom_msg_generator(sequence_length, device_id):
     """
     An example of a custom msg generator.
 
@@ -53,7 +53,12 @@ def my_custom_msg_generator(sequence_length):
         h = random.random()
         s = random.random()
         b = random.random()
-        yield (seq, "lamp/set_config", "{\"on\":true, \"color\":{\"h\":" + str(h) + ", \"s\":" + str(s) + "}, \"brightness\":" + str(b)  + "}")
+
+        if random.random() < .5:
+            topic = "devices/%s/lamp/changed" % (device_id)
+        else:
+            topic = "devices/%s/lamp/changed" % (''.join(random.sample(device_id,len(device_id))))
+        yield (seq, topic, "{\"on\":true, \"color\":{\"h\":" + str(h) + ", \"s\":" + str(s) + "}, \"brightness\":" + str(b)  + "}")
         seq += 1
 
 
@@ -62,12 +67,7 @@ def _worker(options, proc_num, auth=None):
     Wrapper to run a test and push the results back onto a queue.
     Modify this to provide custom message generation routines.
     """
-    # Make a new clientid with our worker process number
-    #cid = "%s-%d" % (options.clientid, proc_num)
-    if random.random() < .5:
-        cid = "%s" % (options.clientid)
-    else:
-        cid = "%s-%d" % (options.clientid, proc_num)
+    cid = "%s-%d" % (options.clientid, proc_num)
 
     if options.bridge:
         ts = beem.bridge.BridgingSender(options.host, options.port, cid, auth)
@@ -80,7 +80,7 @@ def _worker(options, proc_num, auth=None):
         ts = beem.load.TrackingSender(options.host, options.port, cid)
 
     # Provide a custom generator
-    msg_gen = my_custom_msg_generator(options.msg_count)
+    msg_gen = my_custom_msg_generator(options.msg_count, options.device)
     #msg_gen = beem.msgs.createGenerator(cid, options)
     # This helps introduce jitter so you don't have many threads all in sync
     time.sleep(random.uniform(1, 10))
@@ -112,6 +112,9 @@ def add_args(subparsers):
     parser.add_argument(
         "-H", "--host", default="localhost",
         help="MQTT host to connect to")
+    parser.add_argument(
+        "-D", "--device", default="",
+        help="lamp device id")
     parser.add_argument(
         "-p", "--port", type=int, default=1883,
         help="Port for remote MQTT host")
