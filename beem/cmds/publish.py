@@ -80,8 +80,8 @@ def _worker(options, proc_num, auth=None):
         ts = beem.load.TrackingSender(options.host, options.port, cid)
 
     # Provide a custom generator
-    #msg_gen = my_custom_msg_generator(options.msg_count)
-    msg_gen = beem.msgs.createGenerator(cid, options)
+    msg_gen = my_custom_msg_generator(options.msg_count)
+    #msg_gen = beem.msgs.createGenerator(cid, options)
     # This helps introduce jitter so you don't have many threads all in sync
     time.sleep(random.uniform(1, 10))
     ts.run(msg_gen, qos=options.qos)
