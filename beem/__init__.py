@@ -34,7 +34,7 @@ def print_publish_stats(stats):
     if not stats.get("clientid", None):
         raise ValueError("Can't print stats on a non stats object?!", stats)
     print("Clientid: %s" % stats["clientid"])
-    print("Message succes rate: %.2f%% (%d/%d messages)"
+    print("Message success rate: %.2f%% (%d/%d messages)"
           % (100 * stats["rate_ok"], stats["count_ok"], stats["count_total"]))
     print("Message timing mean   %.2f ms" % stats["time_mean"])
     print("Message timing stddev %.2f ms" % stats["time_stddev"])
